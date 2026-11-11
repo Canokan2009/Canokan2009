@@ -22,6 +22,8 @@
   --pad-active: #2f5a43;
   --veil: rgba(221, 230, 218, 0.95);
   --mode: light;
+  --ms-hidden: #aebfa9;
+  --ms-open: #e4ece1;
   --tile-1: hsl(138, 41%, 81%);
   --tile-2: hsl(126, 44%, 77%);
   --tile-3: hsl(114, 47%, 72%);
@@ -55,6 +57,8 @@
     --pad-active: #3c5a48;
     --veil: rgba(14, 20, 17, 0.94);
     --mode: dark;
+    --ms-hidden: #2c3d32;
+    --ms-open: #0f1712;
     --tile-1: hsl(138, 37%, 25%);
     --tile-2: hsl(126, 40%, 28%);
     --tile-3: hsl(114, 43%, 32%);
@@ -87,6 +91,8 @@
   --pad-active: #3c5a48;
   --veil: rgba(14, 20, 17, 0.94);
   --mode: dark;
+  --ms-hidden: #2c3d32;
+  --ms-open: #0f1712;
   --tile-1: hsl(138, 37%, 25%);
   --tile-2: hsl(126, 40%, 28%);
   --tile-3: hsl(114, 43%, 32%);
@@ -127,7 +133,8 @@ body {
 }
 
 /* ---------- menu ---------- */
-.menu-head { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
+.view[data-view="menu"] { overflow-y: auto; overflow-x: hidden; gap: 14px; padding-bottom: 8px; }
+.menu-head { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; flex: none; }
 .menu-head h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -137,23 +144,22 @@ body {
 }
 .menu-head p { margin: 0; color: var(--muted); font-size: 15px; }
 .cards {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   width: 100%;
-  max-width: 460px;
+  max-width: 520px;
   align-self: center;
+  padding: 3px;
 }
 .card {
-  flex: 1 1 0;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 10px;
-  padding: 10px 10px 14px;
-  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 8px 12px;
+  border-radius: 18px;
   background: var(--card);
   box-shadow: 0 0 0 2px var(--panel);
   color: inherit;
@@ -165,27 +171,14 @@ body {
 .art {
   display: block;
   width: 100%;
-  height: 100%;
-  min-height: 0;
+  height: auto;
+  aspect-ratio: 16 / 10;
   border-radius: 12px;
   background: var(--board);
 }
-.card-text { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 6px; }
-.card-name { display: block; font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.1; }
-.card-best { display: block; margin-top: 2px; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
-.go {
-  flex: none;
-  min-height: 44px;
-  padding: 0 22px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: 14px;
-  background: var(--ink);
-  color: var(--bg);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 16px;
-}
+.card-text { display: flex; flex-direction: column; gap: 2px; padding-inline: 4px; min-width: 0; }
+.card-name { display: block; font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.15; }
+.card-best { display: block; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
 /* ---------- shared game UI ---------- */
 .bar { display: flex; align-items: center; gap: 18px; }
@@ -329,6 +322,77 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
 }
 .five button { height: 62px; }
 
+
+/* ---------- more games ---------- */
+.ghost[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.mem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  background: var(--board);
+}
+.mem-card {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: var(--pad);
+  transition: background 0.15s;
+  touch-action: manipulation;
+}
+.mem-card svg { width: 58%; height: 58%; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.mem-card[data-state="up"], .mem-card[data-state="matched"] { background: var(--card); }
+.mem-card[data-state="matched"] { box-shadow: inset 0 0 0 3px var(--c-s); }
+.mem-card[data-state="up"] svg, .mem-card[data-state="matched"] svg { opacity: 1; }
+
+.ms-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  background: var(--panel);
+}
+.ms-cell {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: var(--ms-hidden);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs, 18px);
+  line-height: 1;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+.ms-cell[data-s="o"] { background: var(--ms-open); }
+.ms-cell[data-s="x"], .ms-cell[data-s="b"] { background: var(--ms-open); }
+.ms-cell[data-s="b"] { background: var(--food); color: #ffffff; }
+.ms-cell[data-s="w"] { background: var(--ms-open); }
+.ms-cell svg { width: 62%; height: 62%; pointer-events: none; }
+.ms-cell[data-n="1"] { color: var(--c-j); }
+.ms-cell[data-n="2"] { color: var(--c-s); }
+.ms-cell[data-n="3"] { color: var(--c-z); }
+.ms-cell[data-n="4"] { color: var(--c-t); }
+.ms-cell[data-n="5"] { color: var(--c-l); }
+.ms-cell[data-n="6"] { color: var(--c-i); }
+.ms-cell[data-n="7"] { color: var(--ink); }
+.ms-cell[data-n="8"] { color: var(--muted); }
+
 /* ---------- 2048 ---------- */
 .hint { margin: 0; text-align: center; color: var(--muted); font-size: 14px; }
 .actions { display: flex; gap: 8px; width: 100%; max-width: 460px; align-self: center; }
@@ -339,8 +403,6 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
   .dpad { grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 50px); gap: 6px; }
   .five button { height: 52px; }
   .value { font-size: 22px; }
-  .menu-head h1 { font-size: 28px; }
-  .card-name { font-size: 22px; }
 }
 
 </style>
@@ -348,7 +410,7 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
 <section class="view" data-view="menu">
   <header class="menu-head">
     <h1>Pocket Arcade</h1>
-    <p>Wähle dein Spiel.</p>
+    <p>Acht Spiele. Wähle eins.</p>
   </header>
   <nav class="cards" aria-label="Spiele">
     <a class="card" href="#snake">
@@ -364,10 +426,7 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
         <circle cx="108" cy="44" r="1.6" style="fill: var(--board)"/><circle cx="108" cy="49" r="1.6" style="fill: var(--board)"/>
         <circle cx="131" cy="46" r="5" style="fill: var(--food)"/>
       </svg>
-      <span class="card-text">
-        <span><span class="card-name">Snake</span><span class="card-best" data-best="snake">Noch kein Rekord</span></span>
-        <span class="go">Spielen</span>
-      </span>
+      <span class="card-text"><span class="card-name">Snake</span><span class="card-best" data-best="snake">Noch kein Rekord</span></span>
     </a>
     <a class="card" href="#tetris">
       <svg class="art" viewBox="0 0 148 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -377,10 +436,7 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
         <g style="fill: var(--c-t)"><rect x="92" y="76" width="11" height="11" rx="2.5"/><rect x="104" y="76" width="11" height="11" rx="2.5"/><rect x="116" y="76" width="11" height="11" rx="2.5"/><rect x="104" y="64" width="11" height="11" rx="2.5"/></g>
         <g style="fill: var(--c-l)"><rect x="92" y="16" width="11" height="11" rx="2.5"/><rect x="92" y="28" width="11" height="11" rx="2.5"/><rect x="92" y="40" width="11" height="11" rx="2.5"/><rect x="104" y="40" width="11" height="11" rx="2.5"/></g>
       </svg>
-      <span class="card-text">
-        <span><span class="card-name">Tetris</span><span class="card-best" data-best="tetris">Noch kein Rekord</span></span>
-        <span class="go">Spielen</span>
-      </span>
+      <span class="card-text"><span class="card-name">Tetris</span><span class="card-best" data-best="tetris">Noch kein Rekord</span></span>
     </a>
     <a class="card" href="#2048">
       <svg class="art" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -391,10 +447,94 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
           <rect x="83" y="52" width="40" height="40" rx="6" style="fill: var(--tile-4)"/><text x="103" y="79">16</text>
         </g>
       </svg>
-      <span class="card-text">
-        <span><span class="card-name">2048</span><span class="card-best" data-best="2048">Noch kein Rekord</span></span>
-        <span class="go">Spielen</span>
-      </span>
+      <span class="card-text"><span class="card-name">2048</span><span class="card-best" data-best="2048">Noch kein Rekord</span></span>
+    </a>
+    <a class="card" href="#blockblast">
+      <svg class="art" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <rect x="41" y="76" width="12" height="12" rx="3" style="fill: var(--c-i)"/>
+        <rect x="54" y="76" width="12" height="12" rx="3" style="fill: var(--c-i)"/>
+        <rect x="67" y="76" width="12" height="12" rx="3" style="fill: var(--c-i)"/>
+        <rect x="80" y="76" width="12" height="12" rx="3" style="fill: var(--c-i)"/>
+        <rect x="93" y="76" width="12" height="12" rx="3" style="fill: var(--c-i)"/>
+        <rect x="41" y="63" width="12" height="12" rx="3" style="fill: var(--c-z)"/>
+        <rect x="54" y="63" width="12" height="12" rx="3" style="fill: var(--c-z)"/>
+        <rect x="80" y="63" width="12" height="12" rx="3" style="fill: var(--c-o)"/>
+        <rect x="93" y="63" width="12" height="12" rx="3" style="fill: var(--c-o)"/>
+        <rect x="41" y="50" width="12" height="12" rx="3" style="fill: var(--c-z)"/>
+        <rect x="93" y="50" width="12" height="12" rx="3" style="fill: var(--c-o)"/>
+        <rect x="67" y="50" width="12" height="12" rx="3" style="fill: var(--c-t)"/>
+        <rect x="67" y="63" width="12" height="12" rx="3" style="fill: var(--c-t)"/>
+        <rect x="106" y="76" width="12" height="12" rx="3" style="fill: var(--c-i)"/>
+        <rect x="80" y="11" width="12" height="12" rx="3" style="fill: var(--c-s)"/>
+        <rect x="80" y="24" width="12" height="12" rx="3" style="fill: var(--c-s)"/>
+        <rect x="93" y="24" width="12" height="12" rx="3" style="fill: var(--c-s)"/>
+      </svg>
+      <span class="card-text"><span class="card-name">Block Blast</span><span class="card-best" data-best="blockblast">Noch kein Rekord</span></span>
+    </a>
+    <a class="card" href="#memory">
+      <svg class="art" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <rect x="37" y="8" width="38" height="38" rx="8" style="fill: var(--card)"/><circle cx="56" cy="27" r="11" style="fill: var(--c-i)"/>
+        <rect x="83" y="8" width="38" height="38" rx="8" style="fill: var(--pad)"/>
+        <rect x="37" y="54" width="38" height="38" rx="8" style="fill: var(--pad)"/>
+        <rect x="83" y="54" width="38" height="38" rx="8" style="fill: var(--card)"/><path d="M102 63l9.5 17h-19z" style="fill: var(--c-o)"/>
+      </svg>
+      <span class="card-text"><span class="card-name">Memory</span><span class="card-best" data-best="memory">Noch kein Rekord</span></span>
+    </a>
+    <a class="card" href="#minesweeper">
+      <svg class="art" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <g font-family="'Space Grotesk', system-ui, sans-serif" font-weight="700" font-size="16" text-anchor="middle">
+        <rect x="40" y="7" width="25" height="27" rx="4" style="fill: var(--ms-open)"/>
+        <text x="52.5" y="26" style="fill: var(--c-j)">1</text>
+        <rect x="67" y="7" width="25" height="27" rx="4" style="fill: var(--ms-open)"/>
+        <text x="79.5" y="26" style="fill: var(--c-s)">2</text>
+        <rect x="94" y="7" width="25" height="27" rx="4" style="fill: var(--ms-hidden)"/>
+        <rect x="40" y="36" width="25" height="27" rx="4" style="fill: var(--ms-open)"/>
+        <rect x="67" y="36" width="25" height="27" rx="4" style="fill: var(--ms-open)"/>
+        <text x="79.5" y="55" style="fill: var(--c-j)">1</text>
+        <rect x="94" y="36" width="25" height="27" rx="4" style="fill: var(--ms-hidden)"/>
+        <rect x="40" y="65" width="25" height="27" rx="4" style="fill: var(--ms-open)"/>
+        <rect x="67" y="65" width="25" height="27" rx="4" style="fill: var(--ms-hidden)"/>
+        <rect x="94" y="65" width="25" height="27" rx="4" style="fill: var(--ms-hidden)"/>
+        <path d="M70 66v17" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/><path d="M70 66l10 4.5-10 4.5z" style="fill: var(--food)"/>
+        </g>
+      </svg>
+      <span class="card-text"><span class="card-name">Minesweeper</span><span class="card-best" data-best="minesweeper">Noch kein Rekord</span></span>
+    </a>
+    <a class="card" href="#breakout">
+      <svg class="art" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <rect x="18.5" y="10" width="18" height="8" rx="2" style="fill: var(--c-z)"/>
+        <rect x="39.5" y="10" width="18" height="8" rx="2" style="fill: var(--c-z)"/>
+        <rect x="60.5" y="10" width="18" height="8" rx="2" style="fill: var(--c-z)"/>
+        <rect x="81.5" y="10" width="18" height="8" rx="2" style="fill: var(--c-z)"/>
+        <rect x="102.5" y="10" width="18" height="8" rx="2" style="fill: var(--c-z)"/>
+        <rect x="123.5" y="10" width="18" height="8" rx="2" style="fill: var(--c-z)"/>
+        <rect x="18.5" y="21" width="18" height="8" rx="2" style="fill: var(--c-o)"/>
+        <rect x="39.5" y="21" width="18" height="8" rx="2" style="fill: var(--c-o)"/>
+        <rect x="60.5" y="21" width="18" height="8" rx="2" style="fill: var(--c-o)"/>
+        <rect x="81.5" y="21" width="18" height="8" rx="2" style="fill: var(--c-o)"/>
+        <rect x="102.5" y="21" width="18" height="8" rx="2" style="fill: var(--c-o)"/>
+        <rect x="123.5" y="21" width="18" height="8" rx="2" style="fill: var(--c-o)"/>
+        <rect x="18.5" y="32" width="18" height="8" rx="2" style="fill: var(--c-s)"/>
+        <rect x="39.5" y="32" width="18" height="8" rx="2" style="fill: var(--c-s)"/>
+        <rect x="60.5" y="32" width="18" height="8" rx="2" style="fill: var(--c-s)"/>
+        <rect x="81.5" y="32" width="18" height="8" rx="2" style="fill: var(--c-s)"/>
+        <rect x="102.5" y="32" width="18" height="8" rx="2" style="fill: var(--c-s)"/>
+        <rect x="123.5" y="32" width="18" height="8" rx="2" style="fill: var(--c-s)"/>
+        <circle cx="96" cy="68" r="4.5" style="fill: var(--food)"/>
+        <rect x="62" y="86" width="42" height="7" rx="3.5" style="fill: var(--ink)"/>
+      </svg>
+      <span class="card-text"><span class="card-name">Breakout</span><span class="card-best" data-best="breakout">Noch kein Rekord</span></span>
+    </a>
+    <a class="card" href="#flap">
+      <svg class="art" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <rect x="100" y="-4" width="24" height="42" rx="3" style="fill: var(--c-s)"/><rect x="96" y="26" width="32" height="12" rx="3" style="fill: var(--c-s)"/>
+        <rect x="100" y="66" width="24" height="40" rx="3" style="fill: var(--c-s)"/><rect x="96" y="66" width="32" height="12" rx="3" style="fill: var(--c-s)"/>
+        <rect x="38" y="42" width="26" height="21" rx="7" style="fill: var(--c-o)"/>
+        <circle cx="57" cy="49" r="3.6" style="fill: var(--board)"/><circle cx="58" cy="49" r="1.7" style="fill: var(--ink)"/>
+        <rect x="62" y="53" width="9" height="5" rx="2.5" style="fill: var(--food)"/>
+        <rect x="0" y="92" width="160" height="8" style="fill: var(--panel)"/>
+      </svg>
+      <span class="card-text"><span class="card-name">Flap</span><span class="card-best" data-best="flap">Noch kein Rekord</span></span>
     </a>
   </nav>
 </section>
@@ -484,6 +624,132 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
   <button class="ghost" type="button" data-id="ovMenu">Hauptmenü</button>
   <button class="ghost" type="button" data-id="undo" disabled>Zurück</button>
   <button class="ghost" type="button" data-id="new">Neu</button>
+</div>
+
+</section>
+
+<section class="view" data-view="blockblast" hidden>
+<div class="bar">
+  <div class="stat"><span class="label">Punkte</span><span class="value" data-id="score" aria-live="polite">0</span></div>
+  <div class="stat"><span class="label">Rekord</span><span class="value" data-id="best">0</span></div>
+</div>
+
+<div class="board-wrap" data-id="wrap">
+  <div class="stage" data-id="stage">
+    <canvas data-id="board" aria-label="Spielfeld"></canvas>
+    <div class="overlay" data-id="overlay" hidden>
+      <h1 data-id="ovTitle">Game over</h1>
+      <p data-id="ovText"></p>
+      <button class="primary" data-id="ovBtn" type="button">Nochmal</button>
+      <button class="secondary" type="button" data-id="ovMenu">Hauptmenü</button>
+    </div>
+  </div>
+</div>
+
+<p class="hint">Ziehe die Blöcke aufs Feld. Volle Reihen und Spalten verschwinden.</p>
+<div class="actions">
+  <button class="ghost" type="button" data-id="ovMenu">Hauptmenü</button>
+  <button class="ghost" type="button" data-id="new">Neu</button>
+</div>
+
+</section>
+
+<section class="view" data-view="memory" hidden>
+<div class="bar">
+  <div class="stat"><span class="label">Züge</span><span class="value" data-id="moves" aria-live="polite">0</span></div>
+  <div class="stat"><span class="label">Zeit</span><span class="value" data-id="time">0:00</span></div>
+  <div class="stat"><span class="label">Bestwert</span><span class="value" data-id="best">–</span></div>
+</div>
+
+<div class="board-wrap" data-id="wrap">
+  <div class="stage" data-id="stage">
+    <div class="mem-grid" data-id="grid"></div>
+    <div class="overlay" data-id="overlay" hidden>
+      <h1 data-id="ovTitle">Geschafft!</h1>
+      <p data-id="ovText"></p>
+      <button class="primary" data-id="ovBtn" type="button">Nochmal</button>
+      <button class="secondary" type="button" data-id="ovMenu">Hauptmenü</button>
+    </div>
+  </div>
+</div>
+
+<p class="hint">Finde alle acht Paare mit möglichst wenigen Zügen.</p>
+<div class="actions">
+  <button class="ghost" type="button" data-id="ovMenu">Hauptmenü</button>
+  <button class="ghost" type="button" data-id="new">Neu</button>
+</div>
+
+</section>
+
+<section class="view" data-view="minesweeper" hidden>
+<div class="bar">
+  <div class="stat"><span class="label">Minen</span><span class="value" data-id="mines" aria-live="polite">10</span></div>
+  <div class="stat"><span class="label">Zeit</span><span class="value" data-id="time">0</span></div>
+  <div class="stat"><span class="label">Bestzeit</span><span class="value" data-id="best">–</span></div>
+</div>
+
+<div class="board-wrap" data-id="wrap">
+  <div class="stage" data-id="stage">
+    <div class="ms-grid" data-id="grid"></div>
+    <div class="overlay" data-id="overlay" hidden>
+      <h1 data-id="ovTitle">Game over</h1>
+      <p data-id="ovText"></p>
+      <button class="primary" data-id="ovBtn" type="button">Nochmal</button>
+      <button class="secondary" type="button" data-id="ovMenu">Hauptmenü</button>
+    </div>
+  </div>
+</div>
+
+<p class="hint">Tippen deckt auf. Lange drücken oder „Fahne" setzt eine Markierung.</p>
+<div class="actions">
+  <button class="ghost" type="button" data-id="ovMenu">Hauptmenü</button>
+  <button class="ghost" type="button" data-id="flagmode" aria-pressed="false">Fahne</button>
+  <button class="ghost" type="button" data-id="new">Neu</button>
+</div>
+
+</section>
+
+<section class="view" data-view="breakout" hidden>
+<div class="bar">
+  <div class="stat"><span class="label">Punkte</span><span class="value" data-id="score" aria-live="polite">0</span></div>
+  <div class="stat"><span class="label">Leben</span><span class="value" data-id="lives">3</span></div>
+  <div class="stat"><span class="label">Level</span><span class="value" data-id="level">1</span></div>
+  <div class="grow"></div>
+  <button class="ghost" data-id="pause" type="button" disabled>Pause</button>
+</div>
+
+<div class="board-wrap" data-id="wrap">
+  <div class="stage" data-id="stage">
+    <canvas data-id="board" aria-label="Spielfeld"></canvas>
+    <div class="overlay" data-id="overlay">
+      <h1 data-id="ovTitle">Breakout</h1>
+      <p data-id="ovText">Ziehe den Schläger. Tippe, um den Ball zu starten.</p>
+      <button class="primary" data-id="ovBtn" type="button">Start</button>
+      <button class="secondary" type="button" data-id="ovMenu">Hauptmenü</button>
+    </div>
+  </div>
+</div>
+
+</section>
+
+<section class="view" data-view="flap" hidden>
+<div class="bar">
+  <div class="stat"><span class="label">Punkte</span><span class="value" data-id="score" aria-live="polite">0</span></div>
+  <div class="stat"><span class="label">Rekord</span><span class="value" data-id="best">0</span></div>
+  <div class="grow"></div>
+  <button class="ghost" data-id="pause" type="button" disabled>Pause</button>
+</div>
+
+<div class="board-wrap" data-id="wrap">
+  <div class="stage" data-id="stage">
+    <canvas data-id="board" aria-label="Spielfeld"></canvas>
+    <div class="overlay" data-id="overlay" hidden>
+      <h1 data-id="ovTitle">Game over</h1>
+      <p data-id="ovText"></p>
+      <button class="primary" data-id="ovBtn" type="button">Nochmal</button>
+      <button class="secondary" type="button" data-id="ovMenu">Hauptmenü</button>
+    </div>
+  </div>
 </div>
 
 </section>
@@ -1631,6 +1897,1354 @@ function createGame2048(root) {
 }
 
 
+function createBlockBlast(root) {
+  'use strict';
+
+  var N = 8, STORE_KEY = 'pocket-blockblast-best', FLASH_MS = 320;
+  var DEFS = [
+    ['#'],
+    ['##'], ['#', '#'],
+    ['###'], ['#', '#', '#'],
+    ['####'], ['#', '#', '#', '#'],
+    ['#####'], ['#', '#', '#', '#', '#'],
+    ['##', '##'], ['###', '###', '###'], ['###', '###'], ['##', '##', '##'],
+    ['#.', '##'], ['.#', '##'], ['##', '#.'], ['##', '.#'],
+    ['#..', '#..', '###'], ['..#', '..#', '###'], ['###', '#..', '#..'], ['###', '..#', '..#'],
+    ['#.', '#.', '##'], ['.#', '.#', '##'], ['##', '#.', '#.'], ['##', '.#', '.#'],
+    ['###', '#..'], ['###', '..#'], ['#..', '###'], ['..#', '###'],
+    ['###', '.#.'], ['.#.', '###'], ['#.', '##', '#.'], ['.#', '##', '.#'],
+    ['.##', '##.'], ['##.', '.##'], ['#.', '##', '.#'], ['.#', '##', '#.']
+  ];
+  var KEYS = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+  var SHAPES = DEFS.map(function (rows) {
+    var cells = [];
+    rows.forEach(function (line, r) {
+      for (var c = 0; c < line.length; c++) if (line.charAt(c) === '#') cells.push([r, c]);
+    });
+    return { cells: cells, h: rows.length, w: rows[0].length };
+  });
+
+  function $(id) { return root.querySelector('[data-id="' + id + '"]'); }
+  var wrap = $('wrap'), stage = $('stage'), canvas = $('board'), ctx = canvas.getContext('2d');
+  var scoreEl = $('score'), bestEl = $('best');
+  var overlay = $('overlay'), ovTitle = $('ovTitle'), ovText = $('ovText'), ovBtn = $('ovBtn');
+  var newBtn = $('new');
+
+  var grid, tray, score = 0, best = 0, newBest = false;
+  var state = 'playing';           // playing | over
+  var drag = null, flash = null, dirty = true, colors = null, newTimer = null;
+  var geo = { u: 30, w: 240, h: 360, trayY: 252, slotW: 80 };
+
+  try { best = parseInt(localStorage.getItem(STORE_KEY), 10) || 0; } catch (e) { best = 0; }
+
+  /* ---------- logic ---------- */
+
+  function emptyGrid() {
+    var g = [];
+    for (var r = 0; r < N; r++) g.push(new Array(N).fill(0));
+    return g;
+  }
+
+  function fits(piece, r0, c0) {
+    for (var i = 0; i < piece.cells.length; i++) {
+      var r = r0 + piece.cells[i][0], c = c0 + piece.cells[i][1];
+      if (r < 0 || r >= N || c < 0 || c >= N || grid[r][c]) return false;
+    }
+    return true;
+  }
+
+  function fitsAnywhere(piece) {
+    for (var r = 0; r <= N - piece.h; r++) {
+      for (var c = 0; c <= N - piece.w; c++) if (fits(piece, r, c)) return true;
+    }
+    return false;
+  }
+
+  function randomPiece() {
+    var s = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    return { cells: s.cells, w: s.w, h: s.h, color: Math.floor(Math.random() * KEYS.length) };
+  }
+
+  function refill() {
+    for (var tries = 0; tries < 40; tries++) {
+      tray = [randomPiece(), randomPiece(), randomPiece()];
+      if (tray.some(fitsAnywhere)) return;
+    }
+  }
+
+  function place(i, r0, c0) {
+    var piece = tray[i], k;
+    for (k = 0; k < piece.cells.length; k++) grid[r0 + piece.cells[k][0]][c0 + piece.cells[k][1]] = piece.color + 1;
+    score += piece.cells.length;
+    tray[i] = null;
+
+    var rows = [], cols = [], r, c;
+    for (r = 0; r < N; r++) if (grid[r].every(function (v) { return v; })) rows.push(r);
+    for (c = 0; c < N; c++) {
+      var full = true;
+      for (r = 0; r < N; r++) if (!grid[r][c]) { full = false; break; }
+      if (full) cols.push(c);
+    }
+    var cells = {};
+    rows.forEach(function (rr) { for (var cc = 0; cc < N; cc++) cells[rr * N + cc] = grid[rr][cc]; });
+    cols.forEach(function (cc) { for (var rr = 0; rr < N; rr++) cells[rr * N + cc] = grid[rr][cc]; });
+    var keys = Object.keys(cells);
+    if (keys.length) {
+      flash = { t0: performance.now(), cells: keys.map(function (key) { var n = +key; return { r: Math.floor(n / N), c: n % N, color: cells[key] - 1 }; }) };
+      keys.forEach(function (key) { var n = +key; grid[Math.floor(n / N)][n % N] = 0; });
+      var lines = rows.length + cols.length;
+      score += 10 * lines * lines;
+    }
+
+    if (!tray.some(function (p) { return p; })) refill();
+    if (score > best) { best = score; newBest = true; try { localStorage.setItem(STORE_KEY, String(best)); } catch (e) { /* ignore */ } }
+    if (!tray.some(function (p) { return p && fitsAnywhere(p); })) { state = 'over'; try { if (navigator.vibrate) navigator.vibrate(80); } catch (e) { /* ignore */ } }
+    sync();
+  }
+
+  function newGame() {
+    clearTimeout(newTimer);
+    disarm();
+    grid = emptyGrid();
+    score = 0;
+    newBest = false;
+    state = 'playing';
+    drag = null;
+    flash = null;
+    refill();
+    sync();
+  }
+
+  /* ---------- UI ---------- */
+
+  function sync() {
+    scoreEl.textContent = String(score);
+    bestEl.textContent = String(best);
+    overlay.hidden = state !== 'over';
+    if (state === 'over') {
+      ovTitle.textContent = 'Game over';
+      ovText.textContent = score + (score === 1 ? ' Punkt' : ' Punkte') + (newBest ? ' · Neuer Rekord!' : ' · Rekord ' + best);
+      ovBtn.textContent = 'Nochmal';
+    }
+    dirty = true;
+  }
+
+  function disarm() {
+    if (!newBtn) return;
+    delete newBtn.dataset.armed;
+    newBtn.textContent = 'Neu';
+  }
+
+  /* ---------- drawing ---------- */
+
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    function g(n) { return cs.getPropertyValue(n).trim(); }
+    colors = { board: g('--board'), grid: g('--grid'), keys: KEYS.map(function (k) { return g('--c-' + k.toLowerCase()); }) };
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function block(x, y, size, color, alpha) {
+    var inset = Math.max(1, size * 0.06);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    roundRect(x + inset, y + inset, size - inset * 2, size - inset * 2, size * 0.2);
+    ctx.fill();
+    ctx.globalAlpha = alpha * 0.28;
+    ctx.fillStyle = '#ffffff';
+    roundRect(x + inset * 2, y + inset * 2, size - inset * 4, Math.max(2, size * 0.2), size * 0.1);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  function dragTarget() {
+    if (!drag) return null;
+    var piece = tray[drag.i], u = geo.u;
+    if (!piece) return null;
+    var x0 = drag.x - piece.w * u / 2;
+    var y0 = drag.y - 1.6 * u - piece.h * u;
+    var r = Math.round(y0 / u), c = Math.round(x0 / u);
+    return fits(piece, r, c) ? { r: r, c: c, x0: x0, y0: y0 } : { r: null, c: null, x0: x0, y0: y0 };
+  }
+
+  function render(now) {
+    if (!colors) readColors();
+    var u = geo.u, r, c, i, k;
+    ctx.fillStyle = colors.board;
+    ctx.fillRect(0, 0, geo.w, geo.h);
+    var inset = u * 0.05;
+    ctx.fillStyle = colors.grid;
+    for (r = 0; r < N; r++) for (c = 0; c < N; c++) { roundRect(c * u + inset, r * u + inset, u - inset * 2, u - inset * 2, u * 0.16); ctx.fill(); }
+    for (r = 0; r < N; r++) for (c = 0; c < N; c++) if (grid[r][c]) block(c * u, r * u, u, colors.keys[grid[r][c] - 1], 1);
+
+    var tgt = dragTarget();
+    if (tgt && tgt.r !== null) {
+      var gp = tray[drag.i];
+      for (k = 0; k < gp.cells.length; k++) block((tgt.c + gp.cells[k][1]) * u, (tgt.r + gp.cells[k][0]) * u, u, colors.keys[gp.color], 0.4);
+    }
+
+    if (flash) {
+      var p = (now - flash.t0) / FLASH_MS;
+      if (p >= 1) flash = null;
+      else {
+        flash.cells.forEach(function (cell) {
+          var s = 1 - p * 0.5;
+          var sz = u * s;
+          block(cell.c * u + (u - sz) / 2, cell.r * u + (u - sz) / 2, sz, colors.keys[cell.color], 1 - p);
+        });
+      }
+    }
+
+    var ts = u * 0.5;
+    for (i = 0; i < 3; i++) {
+      var piece = tray[i];
+      ctx.fillStyle = colors.grid;
+      roundRect(i * geo.slotW + u * 0.1, geo.trayY, geo.slotW - u * 0.2, u * 3, u * 0.25);
+      ctx.fill();
+      if (!piece) continue;
+      var sx = i * geo.slotW + (geo.slotW - piece.w * ts) / 2, sy = geo.trayY + (u * 3 - piece.h * ts) / 2;
+      var a = drag && drag.i === i ? 0.25 : 1;
+      for (k = 0; k < piece.cells.length; k++) block(sx + piece.cells[k][1] * ts, sy + piece.cells[k][0] * ts, ts, colors.keys[piece.color], a);
+    }
+
+    if (drag && tray[drag.i] && tgt) {
+      var dp = tray[drag.i];
+      for (k = 0; k < dp.cells.length; k++) block(tgt.x0 + dp.cells[k][1] * u, tgt.y0 + dp.cells[k][0] * u, u, colors.keys[dp.color], 0.95);
+    }
+  }
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (root.hidden) return;
+    if (flash || dirty) { render(now); dirty = false; }
+  }
+
+  function resize() {
+    var rect = wrap.getBoundingClientRect();
+    var u = Math.floor(Math.min(rect.width / N, rect.height / (N + 3.6)));
+    if (u < 10) return;
+    var w = u * N, h = Math.round(u * (N + 3.6));
+    geo = { u: u, w: w, h: h, trayY: u * N + u * 0.4, slotW: w / 3 };
+    var dpr = window.devicePixelRatio || 1;
+    stage.style.width = w + 'px';
+    stage.style.height = h + 'px';
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    dirty = true;
+  }
+
+  /* ---------- input ---------- */
+
+  function local(e) {
+    var rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (state !== 'playing' || drag) return;
+    var p = local(e);
+    if (p.y < geo.trayY - geo.u * 0.2) return;
+    var i = Math.max(0, Math.min(2, Math.floor(p.x / geo.slotW)));
+    if (!tray[i]) return;
+    drag = { i: i, id: e.pointerId, x: p.x, y: p.y };
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    dirty = true;
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var p = local(e);
+    drag.x = p.x; drag.y = p.y;
+    dirty = true;
+  });
+  canvas.addEventListener('pointerup', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var p = local(e);
+    drag.x = p.x; drag.y = p.y;
+    var tgt = dragTarget(), i = drag.i;
+    drag = null;
+    if (tgt && tgt.r !== null) place(i, tgt.r, tgt.c); else dirty = true;
+  });
+  canvas.addEventListener('pointercancel', function () { drag = null; dirty = true; });
+
+  ovBtn.addEventListener('click', function () { newGame(); ovBtn.blur(); });
+  newBtn.addEventListener('click', function () {
+    if (newBtn.dataset.armed || score === 0) { newGame(); newBtn.blur(); return; }
+    newBtn.dataset.armed = '1';
+    newBtn.textContent = 'Sicher?';
+    newTimer = setTimeout(disarm, 2500);
+  });
+
+  try {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var repaint = function () { colors = null; dirty = true; };
+    if (mq.addEventListener) mq.addEventListener('change', repaint);
+    new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  } catch (e) { /* ignore */ }
+
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
+  window.addEventListener('resize', resize);
+
+  newGame();
+  resize();
+  requestAnimationFrame(frame);
+
+  function enter() {
+    if (state === 'over') newGame();
+    colors = null;
+    sync();
+    resize();
+  }
+  function leave() { drag = null; dirty = true; }
+  return { enter: enter, leave: leave };
+}
+
+
+function createMemory(root) {
+  'use strict';
+
+  var STORE_KEY = 'pocket-memory-best', MISMATCH_MS = 750, COUNT = 16;
+  var SHAPES = [
+    { name: 'Kreis', svg: '<circle cx="12" cy="12" r="8.5"/>' },
+    { name: 'Quadrat', svg: '<rect x="4" y="4" width="16" height="16" rx="3"/>' },
+    { name: 'Dreieck', svg: '<path d="M12 3l9.5 17h-19z"/>' },
+    { name: 'Raute', svg: '<path d="M12 2l9.5 10-9.5 10-9.5-10z"/>' },
+    { name: 'Kreuz', svg: '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>' },
+    { name: 'Stern', svg: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/>' },
+    { name: 'Herz', svg: '<path d="M12 21s-8.5-5.4-8.5-11.2A4.6 4.6 0 0 1 12 7.4a4.6 4.6 0 0 1 8.5 2.4C20.5 15.6 12 21 12 21z"/>' },
+    { name: 'Sechseck', svg: '<path d="M12 2l8.7 5v10L12 22l-8.7-5V7z"/>' }
+  ];
+  var COLORS = ['var(--c-i)', 'var(--c-o)', 'var(--c-t)', 'var(--c-s)', 'var(--c-z)', 'var(--c-j)', 'var(--c-l)', 'var(--ink)'];
+
+  function $(id) { return root.querySelector('[data-id="' + id + '"]'); }
+  var wrap = $('wrap'), stage = $('stage'), gridEl = $('grid');
+  var movesEl = $('moves'), timeEl = $('time'), bestEl = $('best');
+  var overlay = $('overlay'), ovTitle = $('ovTitle'), ovText = $('ovText'), ovBtn = $('ovBtn');
+  var newBtn = $('new');
+
+  var deck = [], buttons = [], first = null, lock = false, moves = 0, matched = 0;
+  var seconds = 0, started = false, state = 'playing', best = 0, newBest = false;
+  var timer = null, mismatchTimer = null, newTimer = null;
+
+  try { best = parseInt(localStorage.getItem(STORE_KEY), 10) || 0; } catch (e) { best = 0; }
+
+  function fmt(s) { return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); }
+
+  function build() {
+    for (var i = 0; i < COUNT; i++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'mem-card';
+      b.setAttribute('data-i', String(i));
+      gridEl.appendChild(b);
+      buttons.push(b);
+    }
+  }
+
+  function setCard(i, st) {
+    var b = buttons[i];
+    b.setAttribute('data-state', st);
+    b.setAttribute('aria-label', st === 'down' ? 'Verdeckte Karte ' + (i + 1) : SHAPES[deck[i]].name);
+  }
+
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function stopTimer() { clearInterval(timer); timer = null; }
+  function startTimer() {
+    stopTimer();
+    timer = setInterval(function () { seconds++; timeEl.textContent = fmt(seconds); }, 1000);
+  }
+
+  function newGame() {
+    clearTimeout(mismatchTimer);
+    clearTimeout(newTimer);
+    disarm();
+    stopTimer();
+    deck = shuffle([0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7]);
+    first = null; lock = false; moves = 0; matched = 0; seconds = 0; started = false;
+    state = 'playing'; newBest = false;
+    for (var i = 0; i < COUNT; i++) {
+      var s = SHAPES[deck[i]];
+      buttons[i].innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" style="fill:' + COLORS[deck[i]] + '">' + s.svg + '</svg>';
+      setCard(i, 'down');
+    }
+    sync();
+  }
+
+  function flip(i) {
+    if (lock || state !== 'playing') return;
+    if (buttons[i].getAttribute('data-state') !== 'down') return;
+    setCard(i, 'up');
+    if (!started) { started = true; startTimer(); }
+    if (first === null) { first = i; return; }
+    var a = first, b = i;
+    first = null;
+    moves++;
+    movesEl.textContent = String(moves);
+    if (deck[a] === deck[b]) {
+      setCard(a, 'matched');
+      setCard(b, 'matched');
+      matched += 2;
+      if (matched === COUNT) win();
+    } else {
+      lock = true;
+      mismatchTimer = setTimeout(function () {
+        setCard(a, 'down');
+        setCard(b, 'down');
+        lock = false;
+      }, MISMATCH_MS);
+    }
+  }
+
+  function win() {
+    state = 'won';
+    stopTimer();
+    if (!best || moves < best) {
+      best = moves;
+      newBest = true;
+      try { localStorage.setItem(STORE_KEY, String(best)); } catch (e) { /* ignore */ }
+    }
+    try { if (navigator.vibrate) navigator.vibrate([40, 40, 40]); } catch (e) { /* ignore */ }
+    sync();
+  }
+
+  function sync() {
+    movesEl.textContent = String(moves);
+    timeEl.textContent = fmt(seconds);
+    bestEl.textContent = best ? String(best) : '–';
+    overlay.hidden = state !== 'won';
+    if (state === 'won') {
+      ovTitle.textContent = 'Geschafft!';
+      ovText.textContent = moves + ' Züge · ' + fmt(seconds) + (newBest ? ' · Neuer Bestwert!' : '');
+      ovBtn.textContent = 'Nochmal';
+    }
+  }
+
+  function disarm() {
+    if (!newBtn) return;
+    delete newBtn.dataset.armed;
+    newBtn.textContent = 'Neu';
+  }
+
+  function resize() {
+    var rect = wrap.getBoundingClientRect();
+    var s = Math.floor(Math.min(rect.width, rect.height));
+    if (s < 100) return;
+    stage.style.width = s + 'px';
+    stage.style.height = s + 'px';
+  }
+
+  gridEl.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.mem-card') : null;
+    if (b && gridEl.contains(b)) flip(parseInt(b.getAttribute('data-i'), 10));
+  });
+  ovBtn.addEventListener('click', function () { newGame(); ovBtn.blur(); });
+  newBtn.addEventListener('click', function () {
+    if (newBtn.dataset.armed || (!started && moves === 0)) { newGame(); newBtn.blur(); return; }
+    newBtn.dataset.armed = '1';
+    newBtn.textContent = 'Sicher?';
+    newTimer = setTimeout(disarm, 2500);
+  });
+
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
+  window.addEventListener('resize', resize);
+
+  build();
+  newGame();
+  resize();
+
+  function enter() {
+    if (state === 'won') newGame();
+    else if (started && !timer) startTimer();
+    sync();
+    resize();
+  }
+  function leave() { stopTimer(); }
+  return { enter: enter, leave: leave };
+}
+
+
+function createMinesweeper(root) {
+  'use strict';
+
+  var R = 9, C = 9, M = 10, STORE_KEY = 'pocket-minesweeper-best', LONG_MS = 420;
+  var SVG_FLAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M7 4l11 4.5L7 13z" style="fill: var(--food)"/></svg>';
+  var SVG_MINE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M18.7 5.3l-2.8 2.8M8.1 15.9l-2.8 2.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>';
+
+  function $(id) { return root.querySelector('[data-id="' + id + '"]'); }
+  var wrap = $('wrap'), stage = $('stage'), gridEl = $('grid');
+  var minesEl = $('mines'), timeEl = $('time'), bestEl = $('best');
+  var overlay = $('overlay'), ovTitle = $('ovTitle'), ovText = $('ovText'), ovBtn = $('ovBtn');
+  var newBtn = $('new'), flagBtn = $('flagmode');
+
+  var mine, adj, st, cells = [];       // st: 0 hidden, 1 open, 2 flag
+  var state = 'ready';                 // ready | playing | won | lost
+  var opened = 0, flags = 0, seconds = 0, timer = null, best = 0, newBest = false;
+  var flagMode = false, explode = -1, newTimer = null;
+
+  try { best = parseInt(localStorage.getItem(STORE_KEY), 10) || 0; } catch (e) { best = 0; }
+
+  function build() {
+    for (var i = 0; i < R * C; i++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ms-cell';
+      b.setAttribute('data-i', String(i));
+      gridEl.appendChild(b);
+      cells.push(b);
+    }
+  }
+
+  function neighbors(i) {
+    var r = Math.floor(i / C), c = i % C, out = [];
+    for (var dr = -1; dr <= 1; dr++) {
+      for (var dc = -1; dc <= 1; dc++) {
+        if (!dr && !dc) continue;
+        var nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < R && nc >= 0 && nc < C) out.push(nr * C + nc);
+      }
+    }
+    return out;
+  }
+
+  function stopTimer() { clearInterval(timer); timer = null; }
+  function startTimer() {
+    stopTimer();
+    timer = setInterval(function () { seconds = Math.min(999, seconds + 1); timeEl.textContent = String(seconds); }, 1000);
+  }
+
+  function newGame() {
+    clearTimeout(newTimer);
+    disarm();
+    stopTimer();
+    mine = new Array(R * C).fill(false);
+    adj = new Array(R * C).fill(0);
+    st = new Array(R * C).fill(0);
+    state = 'ready'; opened = 0; flags = 0; seconds = 0; explode = -1; newBest = false;
+    sync();
+  }
+
+  function placeMines(safe) {
+    var banned = {};
+    banned[safe] = true;
+    neighbors(safe).forEach(function (n) { banned[n] = true; });
+    var pool = [];
+    for (var i = 0; i < R * C; i++) if (!banned[i]) pool.push(i);
+    for (var k = 0; k < M; k++) {
+      var j = k + Math.floor(Math.random() * (pool.length - k));
+      var t = pool[k]; pool[k] = pool[j]; pool[j] = t;
+      mine[pool[k]] = true;
+    }
+    for (i = 0; i < R * C; i++) {
+      adj[i] = neighbors(i).filter(function (n) { return mine[n]; }).length;
+    }
+  }
+
+  function reveal(i) {
+    if (state === 'won' || state === 'lost') return;
+    if (st[i] !== 0) return;
+    if (state === 'ready') { placeMines(i); state = 'playing'; startTimer(); }
+    if (mine[i]) { lose(i); return; }
+    var stack = [i];
+    while (stack.length) {
+      var x = stack.pop();
+      if (st[x] !== 0 || mine[x]) continue;
+      st[x] = 1;
+      opened++;
+      if (adj[x] === 0) neighbors(x).forEach(function (n) { if (st[n] === 0 && !mine[n]) stack.push(n); });
+    }
+    if (opened === R * C - M) win(); else sync();
+  }
+
+  function toggleFlag(i) {
+    if (state === 'won' || state === 'lost') return;
+    if (st[i] === 1) return;
+    if (st[i] === 0) { st[i] = 2; flags++; } else { st[i] = 0; flags--; }
+    sync();
+  }
+
+  function chord(i) {
+    if (st[i] !== 1 || adj[i] === 0) return;
+    var nb = neighbors(i);
+    var f = nb.filter(function (n) { return st[n] === 2; }).length;
+    if (f !== adj[i]) return;
+    nb.forEach(function (n) { if (st[n] === 0 && state === 'playing') reveal(n); });
+  }
+
+  function lose(i) {
+    state = 'lost';
+    explode = i;
+    stopTimer();
+    try { if (navigator.vibrate) navigator.vibrate(90); } catch (e) { /* ignore */ }
+    sync();
+  }
+
+  function win() {
+    state = 'won';
+    stopTimer();
+    for (var i = 0; i < R * C; i++) if (mine[i] && st[i] !== 2) { st[i] = 2; flags++; }
+    if (!best || seconds < best) {
+      best = seconds;
+      newBest = true;
+      try { localStorage.setItem(STORE_KEY, String(best)); } catch (e) { /* ignore */ }
+    }
+    try { if (navigator.vibrate) navigator.vibrate([40, 40, 40]); } catch (e) { /* ignore */ }
+    sync();
+  }
+
+  function tap(i) {
+    if (flagMode) { toggleFlag(i); return; }
+    if (st[i] === 1) chord(i); else if (st[i] === 0) reveal(i);
+  }
+
+  /* ---------- UI ---------- */
+
+  function paint(i) {
+    var b = cells[i], s = 'h', html = '', n = '';
+    if (state === 'lost' && mine[i]) {
+      if (st[i] === 2) { s = 'f'; html = SVG_FLAG; }
+      else { s = i === explode ? 'b' : 'x'; html = SVG_MINE; }
+    } else if (state === 'lost' && st[i] === 2) {
+      s = 'w'; html = SVG_FLAG;
+    } else if (st[i] === 1) {
+      s = 'o';
+      if (adj[i] > 0) { html = String(adj[i]); n = String(adj[i]); }
+    } else if (st[i] === 2) {
+      s = 'f'; html = SVG_FLAG;
+    }
+    if (b.getAttribute('data-s') !== s) b.setAttribute('data-s', s);
+    if (n) b.setAttribute('data-n', n); else b.removeAttribute('data-n');
+    if (b.getAttribute('data-h') !== html) { b.innerHTML = html; b.setAttribute('data-h', html); }
+  }
+
+  function sync() {
+    for (var i = 0; i < R * C; i++) paint(i);
+    minesEl.textContent = String(M - flags);
+    timeEl.textContent = String(seconds);
+    bestEl.textContent = best ? String(best) : '–';
+    overlay.hidden = !(state === 'won' || state === 'lost');
+    if (state === 'won') {
+      ovTitle.textContent = 'Geschafft!';
+      ovText.textContent = seconds + (seconds === 1 ? ' Sekunde' : ' Sekunden') + (newBest ? ' · Neue Bestzeit!' : '');
+      ovBtn.textContent = 'Nochmal';
+    } else if (state === 'lost') {
+      ovTitle.textContent = 'Boom!';
+      ovText.textContent = 'Du hast eine Mine erwischt.';
+      ovBtn.textContent = 'Nochmal';
+    }
+  }
+
+  function disarm() {
+    if (!newBtn) return;
+    delete newBtn.dataset.armed;
+    newBtn.textContent = 'Neu';
+  }
+
+  function resize() {
+    var rect = wrap.getBoundingClientRect();
+    var s = Math.floor(Math.min(rect.width, rect.height));
+    if (s < 100) return;
+    stage.style.width = s + 'px';
+    stage.style.height = s + 'px';
+    gridEl.style.setProperty('--ms-fs', Math.round(s / C * 0.5) + 'px');
+  }
+
+  /* ---------- input ---------- */
+
+  var press = null, lastType = 'touch';
+  function cellOf(e) {
+    var b = e.target.closest ? e.target.closest('.ms-cell') : null;
+    return b && gridEl.contains(b) ? parseInt(b.getAttribute('data-i'), 10) : -1;
+  }
+  gridEl.addEventListener('pointerdown', function (e) {
+    lastType = e.pointerType || 'mouse';
+    if (e.button !== undefined && e.button !== 0) return;
+    var i = cellOf(e);
+    if (i < 0) return;
+    if (press) clearTimeout(press.timer);
+    press = { i: i, id: e.pointerId, long: false, x: e.clientX, y: e.clientY };
+    press.timer = setTimeout(function () {
+      if (!press) return;
+      press.long = true;
+      toggleFlag(press.i);
+      try { if (navigator.vibrate) navigator.vibrate(25); } catch (err) { /* ignore */ }
+    }, LONG_MS);
+  });
+  gridEl.addEventListener('pointermove', function (e) {
+    if (!press || e.pointerId !== press.id) return;
+    if (Math.abs(e.clientX - press.x) + Math.abs(e.clientY - press.y) > 14) { clearTimeout(press.timer); press = null; }
+  });
+  gridEl.addEventListener('pointerup', function (e) {
+    if (!press || e.pointerId !== press.id) return;
+    clearTimeout(press.timer);
+    var p = press;
+    press = null;
+    if (!p.long && cellOf(e) === p.i) tap(p.i);
+  });
+  gridEl.addEventListener('pointercancel', function () { if (press) clearTimeout(press.timer); press = null; });
+  gridEl.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    var i = cellOf(e);
+    if (i >= 0 && lastType === 'mouse') toggleFlag(i);
+  });
+  // Keyboard activation (Enter / Space on a focused cell)
+  gridEl.addEventListener('click', function (e) {
+    if (e.detail !== 0) return;
+    var i = cellOf(e);
+    if (i >= 0) tap(i);
+  });
+
+  flagBtn.addEventListener('click', function () {
+    flagMode = !flagMode;
+    flagBtn.setAttribute('aria-pressed', flagMode ? 'true' : 'false');
+  });
+  ovBtn.addEventListener('click', function () { newGame(); ovBtn.blur(); });
+  newBtn.addEventListener('click', function () {
+    if (newBtn.dataset.armed || state === 'ready') { newGame(); newBtn.blur(); return; }
+    newBtn.dataset.armed = '1';
+    newBtn.textContent = 'Sicher?';
+    newTimer = setTimeout(disarm, 2500);
+  });
+
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
+  window.addEventListener('resize', resize);
+
+  build();
+  newGame();
+  resize();
+
+  function enter() {
+    if (state === 'won' || state === 'lost') newGame();
+    else if (state === 'playing' && !timer) startTimer();
+    sync();
+    resize();
+  }
+  function leave() { stopTimer(); }
+  return { enter: enter, leave: leave };
+}
+
+
+function createBreakout(root) {
+  'use strict';
+
+  var W = 320, H = 480, PAD_Y = 452, PH = 10, BR = 5, COLS = 8, ROWS = 6, BW = 34, BH = 14, GAP = 4, TOP = 56;
+  var STORE_KEY = 'pocket-breakout-best', STEP = 1 / 120, PAD_SPEED = 380;
+  var ROW_KEYS = ['z', 'l', 'o', 's', 'i', 't'];
+
+  function $(id) { return root.querySelector('[data-id="' + id + '"]'); }
+  var wrap = $('wrap'), stage = $('stage'), canvas = $('board'), ctx = canvas.getContext('2d');
+  var scoreEl = $('score'), livesEl = $('lives'), levelEl = $('level'), pauseBtn = $('pause');
+  var overlay = $('overlay'), ovTitle = $('ovTitle'), ovText = $('ovText'), ovBtn = $('ovBtn');
+
+  var state = 'ready';              // ready | playing | paused | over
+  var stuck = true, k = 1, dirty = true, colors = null, last = 0, acc = 0, newBest = false;
+  var pad = { x: W / 2, w: 60 }, ball = { x: W / 2, y: PAD_Y - BR, vx: 0, vy: 0 };
+  var speed = 250, bricks = [], score = 0, lives = 3, level = 1, best = 0;
+  var keyL = false, keyR = false;
+
+  try { best = parseInt(localStorage.getItem(STORE_KEY), 10) || 0; } catch (e) { best = 0; }
+
+  function buildBricks() {
+    var out = [], left = (W - (COLS * BW + (COLS - 1) * GAP)) / 2;
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) out.push({ x: left + c * (BW + GAP), y: TOP + r * (BH + GAP), row: r, alive: true });
+    }
+    return out;
+  }
+
+  function resetBall() {
+    stuck = true;
+    ball.x = pad.x;
+    ball.y = PAD_Y - BR;
+    ball.vx = 0; ball.vy = 0;
+  }
+
+  function startGame() {
+    score = 0; lives = 3; level = 1; speed = 250; newBest = false;
+    bricks = buildBricks();
+    pad.x = W / 2;
+    resetBall();
+    state = 'playing';
+    sync();
+  }
+
+  function launch() {
+    if (state !== 'playing' || !stuck) return;
+    stuck = false;
+    var a = (Math.random() < 0.5 ? -1 : 1) * 0.4;
+    ball.vx = speed * Math.sin(a);
+    ball.vy = -speed * Math.cos(a);
+    dirty = true;
+  }
+
+  function normalize() {
+    var m = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy) || 1;
+    ball.vx *= speed / m;
+    ball.vy *= speed / m;
+  }
+
+  function loseLife() {
+    lives--;
+    if (lives <= 0) end(); else { resetBall(); sync(); }
+  }
+
+  function end() {
+    state = 'over';
+    if (score > best) {
+      best = score;
+      newBest = true;
+      try { localStorage.setItem(STORE_KEY, String(best)); } catch (e) { /* ignore */ }
+    }
+    try { if (navigator.vibrate) navigator.vibrate(90); } catch (e) { /* ignore */ }
+    sync();
+  }
+
+  function nextLevel() {
+    level++;
+    speed = Math.min(460, speed + 22);
+    bricks = buildBricks();
+    resetBall();
+    sync();
+  }
+
+  function collide() {
+    var h;
+    if (ball.x < BR) { ball.x = BR; ball.vx = Math.abs(ball.vx); }
+    else if (ball.x > W - BR) { ball.x = W - BR; ball.vx = -Math.abs(ball.vx); }
+    if (ball.y < BR) { ball.y = BR; ball.vy = Math.abs(ball.vy); }
+    if (ball.y - BR > H) { loseLife(); return; }
+
+    if (ball.vy > 0 && ball.y + BR >= PAD_Y && ball.y - BR <= PAD_Y + PH && Math.abs(ball.x - pad.x) <= pad.w / 2 + BR) {
+      h = Math.max(-1, Math.min(1, (ball.x - pad.x) / (pad.w / 2)));
+      var ang = h * 1.05;
+      ball.vx = speed * Math.sin(ang);
+      ball.vy = -speed * Math.cos(ang);
+      ball.y = PAD_Y - BR;
+    }
+
+    for (var i = 0; i < bricks.length; i++) {
+      var b = bricks[i];
+      if (!b.alive) continue;
+      var cx = Math.max(b.x, Math.min(ball.x, b.x + BW)), cy = Math.max(b.y, Math.min(ball.y, b.y + BH));
+      var dx = ball.x - cx, dy = ball.y - cy;
+      if (dx * dx + dy * dy >= BR * BR) continue;
+      b.alive = false;
+      score += (ROWS - b.row) * 5;
+      if (dx === 0 && dy === 0) ball.vy = -ball.vy;
+      else if (Math.abs(dx) > Math.abs(dy)) ball.vx = dx > 0 ? Math.abs(ball.vx) : -Math.abs(ball.vx);
+      else ball.vy = dy > 0 ? Math.abs(ball.vy) : -Math.abs(ball.vy);
+      normalize();
+      if (!bricks.some(function (x) { return x.alive; })) nextLevel(); else hud();
+      return;
+    }
+  }
+
+  function update(dt) {
+    var half = pad.w / 2;
+    if (keyL) pad.x -= PAD_SPEED * dt;
+    if (keyR) pad.x += PAD_SPEED * dt;
+    pad.x = Math.max(half, Math.min(W - half, pad.x));
+    if (stuck) { ball.x = pad.x; ball.y = PAD_Y - BR; return; }
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+    collide();
+  }
+
+  /* ---------- UI ---------- */
+
+  var shown = {};
+  function setText(el, key, v) { if (shown[key] !== v) { shown[key] = v; el.textContent = String(v); } }
+  function hud() {
+    setText(scoreEl, 'score', score);
+    setText(livesEl, 'lives', lives);
+    setText(levelEl, 'level', level);
+  }
+
+  function sync() {
+    hud();
+    pauseBtn.disabled = !(state === 'playing' || state === 'paused');
+    pauseBtn.textContent = state === 'paused' ? 'Weiter' : 'Pause';
+    overlay.hidden = state === 'playing';
+    if (state === 'ready') {
+      ovTitle.textContent = 'Breakout';
+      ovText.textContent = 'Ziehe den Schläger. Tippe, um den Ball zu starten.';
+      ovBtn.textContent = 'Start';
+    } else if (state === 'paused') {
+      ovTitle.textContent = 'Pause';
+      ovText.textContent = score + ' Punkte · Level ' + level;
+      ovBtn.textContent = 'Weiter';
+    } else if (state === 'over') {
+      ovTitle.textContent = 'Game over';
+      ovText.textContent = score + ' Punkte · Level ' + level + (newBest ? ' · Neuer Rekord!' : ' · Rekord ' + best);
+      ovBtn.textContent = 'Nochmal';
+    }
+    dirty = true;
+  }
+
+  function togglePause() {
+    if (state === 'playing') state = 'paused';
+    else if (state === 'paused') { state = 'playing'; acc = 0; }
+    else return;
+    sync();
+  }
+
+  /* ---------- drawing ---------- */
+
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    function g(n) { return cs.getPropertyValue(n).trim(); }
+    colors = { board: g('--board'), grid: g('--grid'), ink: g('--ink'), muted: g('--muted'), food: g('--food'),
+      rows: ROW_KEYS.map(function (x) { return g('--c-' + x); }) };
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function render() {
+    if (!colors) readColors();
+    ctx.fillStyle = colors.board;
+    ctx.fillRect(0, 0, W, H);
+    bricks.forEach(function (b) {
+      if (!b.alive) return;
+      ctx.fillStyle = colors.rows[b.row];
+      roundRect(b.x, b.y, BW, BH, 3);
+      ctx.fill();
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = '#ffffff';
+      roundRect(b.x + 2, b.y + 2, BW - 4, 3, 1.5);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+    ctx.fillStyle = colors.ink;
+    roundRect(pad.x - pad.w / 2, PAD_Y, pad.w, PH, 5);
+    ctx.fill();
+    ctx.fillStyle = colors.food;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, BR, 0, Math.PI * 2);
+    ctx.fill();
+    if (state === 'playing' && stuck) {
+      ctx.fillStyle = colors.muted;
+      ctx.font = "600 14px 'Space Grotesk', system-ui, sans-serif";
+      ctx.textAlign = 'center';
+      ctx.fillText('Tippen zum Starten', W / 2, PAD_Y - 40);
+    }
+  }
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (root.hidden) { last = now; return; }
+    var dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    if (state === 'playing') {
+      acc += dt;
+      while (acc >= STEP && state === 'playing') { update(STEP); acc -= STEP; }
+      hud();
+      render();
+      dirty = false;
+    } else if (dirty) {
+      render();
+      dirty = false;
+    }
+  }
+
+  function resize() {
+    var rect = wrap.getBoundingClientRect();
+    var s = Math.min(rect.width / W, rect.height / H);
+    if (s * W < 100) return;
+    k = s;
+    var w = Math.floor(W * s), h = Math.floor(H * s);
+    var dpr = window.devicePixelRatio || 1;
+    stage.style.width = w + 'px';
+    stage.style.height = h + 'px';
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+    dirty = true;
+  }
+
+  /* ---------- input ---------- */
+
+  var g = null;
+  wrap.addEventListener('pointerdown', function (e) {
+    g = { id: e.pointerId, x: e.clientX, padX: pad.x, moved: false, t: performance.now() };
+  });
+  wrap.addEventListener('pointermove', function (e) {
+    if (!g || e.pointerId !== g.id) return;
+    var dx = e.clientX - g.x;
+    if (Math.abs(dx) > 8) g.moved = true;
+    if (state === 'playing' || state === 'ready') {
+      pad.x = Math.max(pad.w / 2, Math.min(W - pad.w / 2, g.padX + dx / k));
+      dirty = true;
+    }
+  });
+  wrap.addEventListener('pointerup', function (e) {
+    if (!g || e.pointerId !== g.id) return;
+    if (!g.moved && performance.now() - g.t < 400) launch();
+    g = null;
+  });
+  wrap.addEventListener('pointercancel', function () { g = null; });
+
+  ovBtn.addEventListener('click', function () {
+    if (state === 'paused') togglePause(); else startGame();
+    ovBtn.blur();
+  });
+  pauseBtn.addEventListener('click', function () { togglePause(); pauseBtn.blur(); });
+
+  document.addEventListener('keydown', function (e) {
+    if (root.hidden) return;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { keyL = true; e.preventDefault(); }
+    else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { keyR = true; e.preventDefault(); }
+    else if (e.key === ' ') {
+      if (e.target && e.target.tagName === 'BUTTON') return;
+      e.preventDefault();
+      if (state === 'ready' || state === 'over') startGame();
+      else if (state === 'playing' && stuck) launch();
+      else togglePause();
+    } else if (e.key === 'p' || e.key === 'P') togglePause();
+  });
+  document.addEventListener('keyup', function (e) {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keyL = false;
+    else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keyR = false;
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && state === 'playing') { state = 'paused'; sync(); }
+  });
+
+  try {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var repaint = function () { colors = null; dirty = true; };
+    if (mq.addEventListener) mq.addEventListener('change', repaint);
+    new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  } catch (e) { /* ignore */ }
+
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
+  window.addEventListener('resize', resize);
+
+  bricks = buildBricks();
+  sync();
+  resize();
+  requestAnimationFrame(frame);
+
+  function enter() {
+    if (state === 'over') { state = 'ready'; }
+    else if (state === 'playing') { state = 'paused'; }
+    colors = null;
+    keyL = keyR = false;
+    sync();
+    resize();
+  }
+  function leave() {
+    keyL = keyR = false;
+    if (state === 'playing') { state = 'paused'; sync(); }
+  }
+  return { enter: enter, leave: leave };
+}
+
+
+function createFlap(root) {
+  'use strict';
+
+  var W = 320, H = 480, GROUND = 430, BX = 90, BR = 11;
+  var GRAVITY = 1100, FLAP = -330, SPEED = 125, PIPE_W = 54, GAP = 132, SPACING = 185, STEP = 1 / 120;
+  var STORE_KEY = 'pocket-flap-best';
+
+  function $(id) { return root.querySelector('[data-id="' + id + '"]'); }
+  var wrap = $('wrap'), stage = $('stage'), canvas = $('board'), ctx = canvas.getContext('2d');
+  var scoreEl = $('score'), bestEl = $('best'), pauseBtn = $('pause');
+  var overlay = $('overlay'), ovTitle = $('ovTitle'), ovText = $('ovText'), ovBtn = $('ovBtn');
+
+  var state = 'ready';            // ready | playing | paused | dead | over
+  var bird = { y: 220, vy: 0 }, pipes = [], score = 0, best = 0, newBest = false;
+  var colors = null, dirty = true, last = 0, acc = 0, bob = 0, gx = 0, deadAt = 0;
+
+  try { best = parseInt(localStorage.getItem(STORE_KEY), 10) || 0; } catch (e) { best = 0; }
+
+  function newGame() {
+    bird.y = 220; bird.vy = 0;
+    pipes = []; score = 0; newBest = false; acc = 0;
+    state = 'ready';
+    sync();
+  }
+
+  function flap() {
+    if (state === 'ready') { state = 'playing'; sync(); }
+    if (state !== 'playing') return;
+    bird.vy = FLAP;
+  }
+
+  function hitRect(rx, ry, rw, rh) {
+    var cx = Math.max(rx, Math.min(BX, rx + rw)), cy = Math.max(ry, Math.min(bird.y, ry + rh));
+    var dx = BX - cx, dy = bird.y - cy;
+    return dx * dx + dy * dy < BR * BR;
+  }
+
+  function die() {
+    if (state !== 'playing') return;
+    state = 'dead';
+    deadAt = performance.now();
+    if (score > best) {
+      best = score;
+      newBest = true;
+      try { localStorage.setItem(STORE_KEY, String(best)); } catch (e) { /* ignore */ }
+    }
+    try { if (navigator.vibrate) navigator.vibrate(70); } catch (e) { /* ignore */ }
+    bird.vy = Math.min(bird.vy, 0) * 0.4;
+    sync();
+  }
+
+  function update(dt) {
+    if (state === 'playing') {
+      gx += SPEED * dt;
+      var lastPipe = pipes[pipes.length - 1];
+      if (!lastPipe || lastPipe.x <= W - SPACING) {
+        var lo = GAP / 2 + 55, hi = GROUND - GAP / 2 - 55;
+        pipes.push({ x: W + 10, gapY: lo + Math.random() * (hi - lo), passed: false });
+      }
+      pipes.forEach(function (p) { p.x -= SPEED * dt; });
+      while (pipes.length && pipes[0].x + PIPE_W < -4) pipes.shift();
+    }
+    bird.vy += GRAVITY * dt;
+    bird.y += bird.vy * dt;
+    if (bird.y < BR) { bird.y = BR; if (bird.vy < 0) bird.vy = 0; }
+
+    if (state === 'playing') {
+      if (bird.y + BR >= GROUND) { bird.y = GROUND - BR; die(); }
+      for (var i = 0; i < pipes.length && state === 'playing'; i++) {
+        var p = pipes[i];
+        if (hitRect(p.x, 0, PIPE_W, p.gapY - GAP / 2) || hitRect(p.x, p.gapY + GAP / 2, PIPE_W, GROUND - (p.gapY + GAP / 2))) die();
+        else if (!p.passed && p.x + PIPE_W < BX - BR) { p.passed = true; score++; hud(); }
+      }
+    } else if (state === 'dead') {
+      if (bird.y + BR >= GROUND) { bird.y = GROUND - BR; bird.vy = 0; state = 'over'; sync(); }
+    }
+  }
+
+  /* ---------- UI ---------- */
+
+  var shown = {};
+  function setText(el, key, v) { if (shown[key] !== v) { shown[key] = v; el.textContent = String(v); } }
+  function hud() { setText(scoreEl, 'score', score); setText(bestEl, 'best', best); }
+
+  function sync() {
+    hud();
+    pauseBtn.disabled = !(state === 'playing' || state === 'paused');
+    pauseBtn.textContent = state === 'paused' ? 'Weiter' : 'Pause';
+    overlay.hidden = !(state === 'paused' || state === 'over');
+    if (state === 'paused') {
+      ovTitle.textContent = 'Pause';
+      ovText.textContent = score + (score === 1 ? ' Punkt' : ' Punkte');
+      ovBtn.textContent = 'Weiter';
+    } else if (state === 'over') {
+      ovTitle.textContent = 'Game over';
+      ovText.textContent = score + (score === 1 ? ' Punkt' : ' Punkte') + (newBest ? ' · Neuer Rekord!' : ' · Rekord ' + best);
+      ovBtn.textContent = 'Nochmal';
+    }
+    dirty = true;
+  }
+
+  function togglePause() {
+    if (state === 'playing') state = 'paused';
+    else if (state === 'paused') { state = 'playing'; acc = 0; }
+    else return;
+    sync();
+  }
+
+  /* ---------- drawing ---------- */
+
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    function g(n) { return cs.getPropertyValue(n).trim(); }
+    colors = { board: g('--board'), grid: g('--grid'), panel: g('--panel'), ink: g('--ink'), muted: g('--muted'), bg: g('--bg'),
+      pipe: g('--c-s'), bird: g('--c-o'), food: g('--food') };
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function pipeShape(x, y, w, h, capTop) {
+    if (h <= 0) return;
+    ctx.fillStyle = colors.pipe;
+    ctx.fillRect(x + 3, y, w - 6, h);
+    var capY = capTop ? y : y + h - 16;
+    roundRect(x, capY, w, 16, 4);
+    ctx.fill();
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + 8, y, 5, h);
+    ctx.globalAlpha = 1;
+  }
+
+  function render() {
+    if (!colors) readColors();
+    var i;
+    ctx.fillStyle = colors.board;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = colors.grid;
+    for (i = 0; i < 4; i++) ctx.fillRect(0, 70 + i * 90, W, 1);
+
+    pipes.forEach(function (p) {
+      pipeShape(p.x, -2, PIPE_W, p.gapY - GAP / 2 + 2, false);
+      pipeShape(p.x, p.gapY + GAP / 2, PIPE_W, GROUND - (p.gapY + GAP / 2), true);
+    });
+
+    ctx.fillStyle = colors.panel;
+    ctx.fillRect(0, GROUND, W, H - GROUND);
+    ctx.fillStyle = colors.muted;
+    var off = gx % 24;
+    for (i = -1; i < W / 24 + 1; i++) ctx.fillRect(i * 24 - off, GROUND + 14, 12, 3);
+    ctx.fillStyle = colors.ink;
+    ctx.fillRect(0, GROUND, W, 3);
+
+    var by = state === 'ready' ? 220 + Math.sin(bob) * 8 : bird.y;
+    var tilt = state === 'ready' ? 0 : Math.max(-0.5, Math.min(1.1, bird.vy / 500));
+    ctx.save();
+    ctx.translate(BX, by);
+    ctx.rotate(tilt);
+    ctx.fillStyle = colors.bird;
+    roundRect(-BR - 2, -BR, BR * 2 + 4, BR * 2, 7);
+    ctx.fill();
+    ctx.fillStyle = colors.board;
+    ctx.beginPath();
+    ctx.arc(5, -3, 3.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = colors.ink;
+    ctx.beginPath();
+    ctx.arc(6, -3, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = colors.food;
+    roundRect(7, 1, 9, 5, 2.5);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = colors.ink;
+    ctx.font = "700 40px 'Space Grotesk', system-ui, sans-serif";
+    if (state !== 'ready') ctx.fillText(String(score), W / 2, 62);
+    else {
+      ctx.fillStyle = colors.muted;
+      ctx.font = "600 15px 'Space Grotesk', system-ui, sans-serif";
+      ctx.fillText('Tippen zum Fliegen', W / 2, 150);
+    }
+  }
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (root.hidden) { last = now; return; }
+    var dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    if (state === 'playing' || state === 'dead') {
+      acc += dt;
+      while (acc >= STEP && (state === 'playing' || state === 'dead')) { update(STEP); acc -= STEP; }
+      render();
+      dirty = false;
+    } else if (state === 'ready') {
+      bob += dt * 4;
+      render();
+    } else if (dirty) {
+      render();
+      dirty = false;
+    }
+  }
+
+  function resize() {
+    var rect = wrap.getBoundingClientRect();
+    var s = Math.min(rect.width / W, rect.height / H);
+    if (s * W < 100) return;
+    var w = Math.floor(W * s), h = Math.floor(H * s);
+    var dpr = window.devicePixelRatio || 1;
+    stage.style.width = w + 'px';
+    stage.style.height = h + 'px';
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+    dirty = true;
+  }
+
+  /* ---------- input ---------- */
+
+  wrap.addEventListener('pointerdown', function (e) {
+    if (e.target && e.target.closest && e.target.closest('button')) return;
+    flap();
+  });
+  ovBtn.addEventListener('click', function () {
+    if (state === 'paused') togglePause(); else newGame();
+    ovBtn.blur();
+  });
+  pauseBtn.addEventListener('click', function () { togglePause(); pauseBtn.blur(); });
+
+  document.addEventListener('keydown', function (e) {
+    if (root.hidden) return;
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+      if (e.target && e.target.tagName === 'BUTTON') return;
+      e.preventDefault();
+      if (state === 'over') newGame(); else if (state === 'paused') togglePause(); else flap();
+    } else if (e.key === 'p' || e.key === 'P') togglePause();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && state === 'playing') { state = 'paused'; sync(); }
+  });
+
+  try {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var repaint = function () { colors = null; dirty = true; };
+    if (mq.addEventListener) mq.addEventListener('change', repaint);
+    new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  } catch (e) { /* ignore */ }
+
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
+  window.addEventListener('resize', resize);
+
+  newGame();
+  resize();
+  requestAnimationFrame(frame);
+
+  function enter() {
+    if (state === 'over' || state === 'dead') newGame();
+    else if (state === 'playing') state = 'paused';
+    colors = null;
+    sync();
+    resize();
+  }
+  function leave() { if (state === 'playing') { state = 'paused'; sync(); } }
+  return { enter: enter, leave: leave };
+}
+
+
 (function () {
   'use strict';
 
@@ -1641,15 +3255,29 @@ function createGame2048(root) {
   games.snake = createSnake(views.snake);
   games.tetris = createTetris(views.tetris);
   games['2048'] = createGame2048(views['2048']);
+  games.blockblast = createBlockBlast(views.blockblast);
+  games.memory = createMemory(views.memory);
+  games.minesweeper = createMinesweeper(views.minesweeper);
+  games.breakout = createBreakout(views.breakout);
+  games.flap = createFlap(views.flap);
 
-  var KEYS = { snake: 'pocket-snake-best', tetris: 'pocket-tetris-best', '2048': 'pocket-2048-best' };
+  var KEYS = {
+    snake: ['pocket-snake-best', function (n) { return 'Rekord ' + n; }],
+    tetris: ['pocket-tetris-best', function (n) { return 'Rekord ' + n; }],
+    '2048': ['pocket-2048-best', function (n) { return 'Rekord ' + n; }],
+    blockblast: ['pocket-blockblast-best', function (n) { return 'Rekord ' + n; }],
+    memory: ['pocket-memory-best', function (n) { return 'Bestwert ' + n + ' Züge'; }],
+    minesweeper: ['pocket-minesweeper-best', function (n) { return 'Bestzeit ' + n + ' s'; }],
+    breakout: ['pocket-breakout-best', function (n) { return 'Rekord ' + n; }],
+    flap: ['pocket-flap-best', function (n) { return 'Rekord ' + n; }]
+  };
 
   function refreshBests() {
     Object.keys(KEYS).forEach(function (name) {
       var best = 0;
-      try { best = parseInt(localStorage.getItem(KEYS[name]), 10) || 0; } catch (e) { best = 0; }
+      try { best = parseInt(localStorage.getItem(KEYS[name][0]), 10) || 0; } catch (e) { best = 0; }
       var el = document.querySelector('[data-best="' + name + '"]');
-      if (el) el.textContent = best > 0 ? 'Rekord ' + best : 'Noch kein Rekord';
+      if (el) el.textContent = best > 0 ? KEYS[name][1](best) : 'Noch kein Rekord';
     });
   }
 
