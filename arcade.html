@@ -112,6 +112,9 @@ html, body { height: 100%; }
 body {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 1500px;
+  margin-inline: auto;
   padding-block: 12px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -133,8 +136,9 @@ body {
 }
 
 /* ---------- menu ---------- */
-.view[data-view="menu"] { overflow-y: auto; overflow-x: hidden; gap: 14px; padding-bottom: 8px; }
-.menu-head { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; flex: none; }
+.view[data-view="menu"] { --menu-w: 520px; overflow-y: auto; overflow-x: hidden; gap: 14px; padding-bottom: 8px; }
+.menu-head { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; flex: none; width: 100%; max-width: var(--menu-w); align-self: center; }
+.kbd-hint { display: none; }
 .menu-head h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -149,7 +153,7 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
-  max-width: 520px;
+  max-width: var(--menu-w);
   align-self: center;
   padding: 3px;
 }
@@ -436,12 +440,47 @@ button:focus-visible { outline: 3px solid var(--food); outline-offset: 2px; }
 
 [data-view="sand"] canvas { image-rendering: pixelated; }
 
+/* ---------- wide screens: tablets in landscape, desktop ---------- */
+@media (min-width: 700px) {
+  .view[data-view="menu"] { --menu-w: 860px; }
+  .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1000px) {
+  .view[data-view="menu"] { --menu-w: 1180px; }
+  .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .kbd-hint { display: block; }
+  .ghost:hover:not(:disabled), .secondary:hover, .tool:hover { border-color: var(--ink); }
+  .primary:hover, .go:hover { opacity: 0.88; }
+  .card:hover { background: var(--panel); }
+  .pad button:hover { background: var(--pad-active); }
+  .mem-card:hover:not([data-state="matched"]) { background: var(--pad-active); }
+  .ms-cell[data-s="h"]:hover { filter: brightness(1.12); }
+  .stage canvas { cursor: crosshair; }
+  [data-view="breakout"] canvas, [data-view="flap"] canvas, [data-view="2048"] canvas, [data-view="snake"] canvas, [data-view="tetris"] canvas { cursor: default; }
+  [data-view="blockblast"] canvas { cursor: grab; }
+}
+@media (min-width: 800px) and (min-height: 540px) and (min-aspect-ratio: 5/4) {
+  .view:not([data-view="menu"]) {
+    --side-w: 320px;
+    flex-flow: column wrap;
+    align-content: flex-start;
+    justify-content: center;
+    column-gap: 28px;
+    row-gap: 12px;
+  }
+  .view:not([data-view="menu"]) > .board-wrap { order: -1; flex: none; height: 100%; width: calc(100% - 348px); }
+  .view:not([data-view="menu"]) > :not(.board-wrap) { width: var(--side-w); max-width: var(--side-w); }
+}
+
 </style>
 
 <section class="view" data-view="menu">
   <header class="menu-head">
     <h1>Pocket Arcade</h1>
     <p>Zwölf Spiele. Wähle eins.</p>
+    <p class="kbd-hint">Tastatur: Pfeiltasten oder WASD, Leertaste, Zahlentasten für Werkzeuge, Esc zurück zum Menü.</p>
   </header>
   <nav class="cards" aria-label="Spiele">
     <h2 class="menu-sec">Arcade</h2>
@@ -2238,7 +2277,7 @@ function createBlockBlast(root) {
     var piece = tray[drag.i], u = geo.u;
     if (!piece) return null;
     var x0 = drag.x - piece.w * u / 2;
-    var y0 = drag.y - 1.6 * u - piece.h * u;
+    var y0 = drag.y - drag.lift * u - piece.h * u;
     var r = Math.round(y0 / u), c = Math.round(x0 / u);
     return fits(piece, r, c) ? { r: r, c: c, x0: x0, y0: y0 } : { r: null, c: null, x0: x0, y0: y0 };
   }
@@ -2325,7 +2364,7 @@ function createBlockBlast(root) {
     if (p.y < geo.trayY - geo.u * 0.2) return;
     var i = Math.max(0, Math.min(2, Math.floor(p.x / geo.slotW)));
     if (!tray[i]) return;
-    drag = { i: i, id: e.pointerId, x: p.x, y: p.y };
+    drag = { i: i, id: e.pointerId, x: p.x, y: p.y, lift: e.pointerType === 'mouse' ? 0.35 : 1.6 };
     try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
     dirty = true;
   });
@@ -2747,7 +2786,7 @@ function createMinesweeper(root) {
     if (i < 0) return;
     if (press) clearTimeout(press.timer);
     press = { i: i, id: e.pointerId, long: false, x: e.clientX, y: e.clientY };
-    press.timer = setTimeout(function () {
+    press.timer = e.pointerType === 'mouse' ? null : setTimeout(function () {
       if (!press) return;
       press.long = true;
       toggleFlag(press.i);
@@ -3062,6 +3101,12 @@ function createBreakout(root) {
     g = { id: e.pointerId, x: e.clientX, padX: pad.x, moved: false, t: performance.now() };
   });
   wrap.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'mouse' && (state === 'playing' || state === 'ready')) {
+      var cr = canvas.getBoundingClientRect();
+      pad.x = Math.max(pad.w / 2, Math.min(W - pad.w / 2, (e.clientX - cr.left) / cr.width * W));
+      dirty = true;
+      return;
+    }
     if (!g || e.pointerId !== g.id) return;
     var dx = e.clientX - g.x;
     if (Math.abs(dx) > 8) g.moved = true;
@@ -3415,7 +3460,8 @@ function createFlap(root) {
 function createSand(root) {
   'use strict';
 
-  var COLS = 90, ROWS = 120, N = COLS * ROWS;
+  var LAND = window.innerWidth >= 800 && window.innerWidth > window.innerHeight * 1.2;
+  var COLS = LAND ? 128 : 90, ROWS = LAND ? 96 : 120, N = COLS * ROWS;
   var E = 0, SAND = 1, WATER = 2, OIL = 3, LAVA = 4, FIRE = 5, WOOD = 6, STONE = 7, PLANT = 8;
   var DENS = [0, 3, 2, 1, 4, 0, 0, 0, 0];
   var RGB = [null, [230, 195, 106], [61, 139, 255], [122, 79, 160], [255, 90, 31], [255, 176, 46], [154, 106, 58], [140, 147, 153], [79, 191, 90]];
@@ -3427,6 +3473,7 @@ function createSand(root) {
 
   function $(id) { return root.querySelector('[data-id="' + id + '"]'); }
   var wrap = $('wrap'), stage = $('stage'), canvas = $('board'), ctx = canvas.getContext('2d');
+  canvas.width = COLS; canvas.height = ROWS;
   var toolsEl = $('tools'), countEl = $('count'), brushEl = $('brush');
   var sizeBtn = $('size'), pauseBtn = $('pause'), clearBtn = $('clear');
 
@@ -3696,13 +3743,19 @@ function createSand(root) {
   resize();
   // starter scene: a small stone basin with a little sand and water
   (function seed() {
-    var x, y;
-    for (x = 20; x < 70; x++) { type[100 * COLS + x] = STONE; type[101 * COLS + x] = STONE; }
-    for (y = 88; y < 102; y++) { type[y * COLS + 20] = STONE; type[y * COLS + 69] = STONE; }
-    for (y = 95; y < 100; y++) for (x = 22; x < 50; x++) type[y * COLS + x] = WATER;
-    for (y = 70; y < 76; y++) for (x = 40; x < 52; x++) type[y * COLS + x] = SAND;
+    var x, y, fy = ROWS - 20, bx0 = Math.floor(COLS / 2) - 25, mid = Math.floor(COLS / 2);
+    for (x = bx0; x < bx0 + 50; x++) { type[fy * COLS + x] = STONE; type[(fy + 1) * COLS + x] = STONE; }
+    for (y = fy - 12; y < fy + 2; y++) { type[y * COLS + bx0] = STONE; type[y * COLS + bx0 + 49] = STONE; }
+    for (y = fy - 5; y < fy; y++) for (x = bx0 + 2; x < bx0 + 30; x++) type[y * COLS + x] = WATER;
+    for (y = fy - 30; y < fy - 24; y++) for (x = mid - 6; x < mid + 6; x++) type[y * COLS + x] = SAND;
   })();
   requestAnimationFrame(frame);
+
+  document.addEventListener('keydown', function (e) {
+    if (root.hidden) return;
+    if (e.key >= '1' && e.key <= '9') { selectTool(parseInt(e.key, 10) - 1); }
+    else if (e.key === 'p' || e.key === 'P') { pauseBtn.click(); }
+  });
 
   function enter() { readBg(); resize(); }
   function leave() { pen = null; }
@@ -3969,9 +4022,11 @@ function createBauen(root) {
 
   function resize() {
     var rect = wrap.getBoundingClientRect();
-    var s = Math.floor(Math.min(rect.width / VC, rect.height / VR));
+    var s = Math.floor(rect.height / VR), vc = s > 0 ? Math.floor(rect.width / s) : 0;
+    if (vc < 14) { s = Math.floor(Math.min(rect.width / 14, rect.height / VR)); vc = 14; }
+    vc = Math.min(vc, 40);
     if (s < 8) return;
-    cs = s;
+    cs = s; VC = vc;
     var w = s * VC, h = s * VR, dpr = window.devicePixelRatio || 1;
     stage.style.width = w + 'px';
     stage.style.height = h + 'px';
@@ -4061,7 +4116,8 @@ function createBauen(root) {
 function createPhysik(root) {
   'use strict';
 
-  var W = 320, H = 480, MAX_BODIES = 120, STEP = 1000 / 60;
+  var LAND = window.innerWidth >= 800 && window.innerWidth > window.innerHeight * 1.2;
+  var W = LAND ? 560 : 320, H = LAND ? 400 : 480, MAX_BODIES = 120, STEP = 1000 / 60;
   var TOOLS = [
     { id: 'box', name: 'Kiste', color: 'var(--c-o)' }, { id: 'ball', name: 'Ball', color: 'var(--c-z)' },
     { id: 'tri', name: 'Dreieck', color: 'var(--c-t)' }, { id: 'plank', name: 'Balken', color: 'var(--c-l)' },
@@ -4237,16 +4293,17 @@ function createPhysik(root) {
 
   /* ---------- UI ---------- */
 
+  function pickTool(i) {
+    tool = TOOLS[i].id;
+    toolBtns.forEach(function (x, j) { x.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+  }
   TOOLS.forEach(function (t, i) {
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'tool';
     b.innerHTML = '<span class="sw" style="background:' + t.color + (t.id === 'erase' ? ';box-shadow:inset 0 0 0 2px currentColor' : '') + '"></span><span>' + t.name + '</span>';
     b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
-    b.addEventListener('click', function () {
-      tool = t.id;
-      toolBtns.forEach(function (x, j) { x.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
-    });
+    b.addEventListener('click', function () { pickTool(i); });
     toolsEl.appendChild(b);
     toolBtns.push(b);
   });
@@ -4288,14 +4345,20 @@ function createPhysik(root) {
   (function seed() {
     var i, ck = ['o', 'z', 't', 'l'];
     for (i = 0; i < 4; i++) {
-      var b = Bodies.rectangle(230, H - 10 - 16 - i * 32, 30, 30, { friction: 0.5, restitution: 0.1 });
+      var b = Bodies.rectangle(Math.round(W * 0.72), H - 10 - 16 - i * 32, 30, 30, { friction: 0.5, restitution: 0.1 });
       b.colorKey = ck[i];
       Composite.add(world, b);
     }
-    addLine(30, 250, 170, 330);
-    spawn('ball', 55, 150);
+    addLine(W * 0.1, H * 0.52, W * 0.5, H * 0.69);
+    spawn('ball', W * 0.17, H * 0.31);
   })();
   requestAnimationFrame(frame);
+
+  document.addEventListener('keydown', function (e) {
+    if (root.hidden) return;
+    if (e.key >= '1' && e.key <= '6') pickTool(parseInt(e.key, 10) - 1);
+    else if (e.key === 'p' || e.key === 'P') pauseBtn.click();
+  });
 
   function enter() { colors = null; resize(); acc = 0; }
   function leave() { pen = null; preview = null; }
@@ -4306,7 +4369,8 @@ function createPhysik(root) {
 function createHof(root) {
   'use strict';
 
-  var C = 10, R = 14, SAVE_KEY = 'pocket-hof-world', GROW_S = 7, MAX_SHEEP = 12;
+  var LAND = window.innerWidth >= 800 && window.innerWidth > window.innerHeight * 1.2;
+  var C = LAND ? 16 : 10, R = LAND ? 10 : 14, SAVE_KEY = 'pocket-hof-world' + (LAND ? '-wide' : ''), GROW_S = 7, MAX_SHEEP = 12;
   var GRASS = 0, PATH = 1, WATER = 2, FIELD = 3, TREE = 4, HOUSE = 5, FLOWER = 6;
   var TOOLS = [
     { id: 'grass', t: GRASS, name: 'Gras', color: '#6fbf4f' }, { id: 'path', t: PATH, name: 'Weg', color: '#d2b48c' },
@@ -4334,6 +4398,15 @@ function createHof(root) {
     tiles = new Uint8Array(C * R); crop = new Uint8Array(C * R); age = new Float32Array(C * R);
     sheep = []; harvest = 0;
     function set(x, y, t) { tiles[y * C + x] = t; }
+    if (LAND) {
+      set(2, 2, HOUSE); set(2, 3, PATH); set(2, 4, PATH); set(3, 4, PATH); set(4, 4, PATH); set(5, 4, PATH);
+      for (var wy = 5; wy <= 6; wy++) for (var wx = 5; wx <= 7; wx++) { set(wx, wy, FIELD); crop[wy * C + wx] = 1 + ((wx + wy) % 3); }
+      set(8, 2, TREE); set(10, 1, TREE); set(1, 7, TREE); set(12, 1, TREE); set(13, 6, TREE);
+      for (var qx = 9; qx < 15; qx++) for (var qy = 5; qy < 10; qy++) if ((qx - 11.5) * (qx - 11.5) + (qy - 7.5) * (qy - 7.5) < 3.4) set(qx, qy, WATER);
+      set(3, 7, FLOWER); set(7, 8, FLOWER); set(14, 3, FLOWER); set(2, 5, FLOWER);
+      addSheep(4.5, 8.5); addSheep(9.5, 3.5); addSheep(6.5, 7.5);
+      return;
+    }
     set(2, 2, HOUSE); set(2, 3, PATH); set(2, 4, PATH); set(3, 4, PATH); set(4, 4, PATH); set(5, 4, PATH);
     for (var y = 5; y <= 6; y++) for (var x = 4; x <= 6; x++) { set(x, y, FIELD); crop[y * C + x] = 1 + ((x + y) % 3); }
     set(8, 2, TREE); set(8, 3, TREE); set(7, 1, TREE); set(1, 8, TREE); set(0, 11, TREE);
@@ -4561,16 +4634,17 @@ function createHof(root) {
 
   /* ---------- UI ---------- */
 
+  function pickTool(i) {
+    tool = i;
+    toolBtns.forEach(function (x, j) { x.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+  }
   TOOLS.forEach(function (t, i) {
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'tool';
     b.innerHTML = '<span class="sw" style="background:' + t.color + '"></span><span>' + t.name + '</span>';
     b.setAttribute('aria-pressed', i === tool ? 'true' : 'false');
-    b.addEventListener('click', function () {
-      tool = i;
-      toolBtns.forEach(function (x, j) { x.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
-    });
+    b.addEventListener('click', function () { pickTool(i); });
     toolsEl.appendChild(b);
     toolBtns.push(b);
   });
@@ -4596,6 +4670,11 @@ function createHof(root) {
   if (!load()) starter();
   resize();
   requestAnimationFrame(frame);
+
+  document.addEventListener('keydown', function (e) {
+    if (root.hidden) return;
+    if (e.key >= '1' && e.key <= '8') pickTool(parseInt(e.key, 10) - 1);
+  });
 
   function enter() { resize(); }
   function leave() { pen = null; }
@@ -4662,6 +4741,9 @@ function createHof(root) {
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && current !== 'menu') goMenu();
+  });
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.stage')) e.preventDefault();
   });
   window.addEventListener('hashchange', route);
   route();
